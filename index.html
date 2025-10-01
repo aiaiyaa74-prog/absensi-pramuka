@@ -1,0 +1,621 @@
+<<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Absensi Online Pramuka Astinapura</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0ead6;
+            background-image:
+                radial-gradient(at 47% 33%, hsl(45.00, 100%, 89%) 0, transparent 59%),
+                radial-gradient(at 82% 65%, hsl(193.00, 69%, 85%) 0, transparent 55%);
+        }
+        .pra-brown { color: #6F4E37; }
+        .pra-brown-bg { background-color: #6F4E37; }
+        .pra-brown-light-bg { background-color: #A0522D; }
+        .pra-green { color: #556B2F; }
+        .pra-green-bg { background-color: #556B2F; }
+        .pra-tan-bg { background-color: #D2B48C; }
+        .pra-sand-bg { background-color: #F4A460; }
+        .pra-sand-light-bg { background-color: #f5deb3; }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f5deb3;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #A0522D;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6F4E37;
+        }
+
+        /* Animation for page transition */
+        .page {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Container Utama -->
+    <div id="app-container" class="w-full max-w-4xl mx-auto">
+
+        <!-- Halaman Login -->
+        <div id="login-page" class="page">
+            <div class="bg-white/80 backdrop-blur-sm shadow-2xl rounded-2xl overflow-hidden flex flex-col md:flex-row">
+                <div class="w-full md:w-1/2 p-8 md:p-12">
+                    <div class="flex items-center gap-4 mb-6">
+                         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/40/WOSM_logo_HD.svg/1200px-WOSM_logo_HD.svg.png" alt="Logo Pramuka" class="h-16 w-16 object-contain">
+                        <div>
+                            <h1 class="text-2xl font-bold pra-brown">Pramuka Astinapura</h1>
+                            <p class="text-sm text-gray-600">Sistem Absensi Online</p>
+                        </div>
+                    </div>
+                    
+                    <h2 class="text-3xl font-bold pra-brown mb-2">Selamat Datang!</h2>
+                    <p class="text-gray-500 mb-8">Silakan masuk untuk melanjutkan.</p>
+                    
+                    <div id="login-error" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-4" role="alert">
+                        <strong class="font-bold">Gagal!</strong>
+                        <span class="block sm:inline">Username atau password salah.</span>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                            <input type="text" id="username" placeholder="Masukkan username" class="mt-1 block w-full px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pra-brown-light-bg focus:border-transparent transition">
+                        </div>
+                        <div>
+                            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                            <input type="password" id="password" placeholder="Masukkan password" class="mt-1 block w-full px-4 py-2 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pra-brown-light-bg focus:border-transparent transition">
+                        </div>
+                    </div>
+                    
+                    <button id="login-btn" class="w-full mt-8 pra-brown-bg text-white font-bold py-3 px-4 rounded-lg hover:bg-pra-brown-light-bg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pra-brown-bg transition-transform transform hover:scale-105 shadow-lg">
+                        Masuk
+                    </button>
+
+                    <div class="mt-6 text-xs text-gray-500 text-center">
+                        <p>Akun Dummy:</p>
+                        <p>Admin: <span class="font-semibold">admin / admin1234</span></p>
+                        <p>Anggota: <span class="font-semibold">user / user123</span></p>
+                    </div>
+                </div>
+                <div class="hidden md:block md:w-1/2 bg-cover bg-center" style="background-image: url('https://placehold.co/600x800/A0522D/FFFFFF?text=Pramuka+Astinapura&font=poppins');">
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Admin -->
+        <div id="admin-dashboard" class="page hidden">
+            <div class="bg-white/90 backdrop-blur-sm p-6 sm:p-8 rounded-2xl shadow-2xl">
+                <header class="flex justify-between items-center pb-4 border-b-2 border-pra-sand-light-bg mb-6">
+                    <div>
+                        <h1 class="text-2xl sm:text-3xl font-bold pra-brown">Dashboard Admin</h1>
+                        <p class="text-gray-600">Manajemen Jadwal dan Absensi Pramuka</p>
+                    </div>
+                    <button id="admin-logout-btn" class="bg-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600 transition shadow-md flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd" /></svg>
+                        Keluar
+                    </button>
+                </header>
+                
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-semibold pra-green">Daftar Jadwal Latihan</h2>
+                    <button id="add-schedule-btn" class="pra-green-bg text-white font-bold py-2 px-4 rounded-lg hover:bg-opacity-90 transition shadow-lg flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                        Tambah Jadwal
+                    </button>
+                </div>
+
+                <div id="schedule-list-admin" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                    <!-- Jadwal akan dimuat di sini oleh JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard User -->
+        <div id="user-dashboard" class="page hidden">
+             <div class="bg-white/90 backdrop-blur-sm p-6 sm:p-8 rounded-2xl shadow-2xl">
+                <header class="flex justify-between items-center pb-4 border-b-2 border-pra-sand-light-bg mb-6">
+                    <div>
+                        <h1 class="text-2xl sm:text-3xl font-bold pra-brown">Dashboard Anggota</h1>
+                        <p class="text-gray-600">Selamat datang, <span id="user-name-display" class="font-semibold">Anggota</span>!</p>
+                    </div>
+                    <button id="user-logout-btn" class="bg-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600 transition shadow-md flex items-center gap-2">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd" /></svg>
+                        Keluar
+                    </button>
+                </header>
+
+                <h2 class="text-xl font-semibold pra-green mb-4">Jadwal Latihan Tersedia</h2>
+                 <div id="schedule-list-user" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                    <!-- Jadwal akan dimuat di sini oleh JavaScript -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Modal untuk Tambah/Edit Jadwal -->
+    <div id="schedule-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 transform transition-all scale-95 opacity-0" id="modal-content">
+            <h2 id="modal-title" class="text-2xl font-bold pra-brown mb-6">Tambah Jadwal Baru</h2>
+            <form id="schedule-form" class="space-y-4">
+                <input type="hidden" id="schedule-id">
+                <div>
+                    <label for="schedule-date" class="block text-sm font-medium text-gray-700">Tanggal</label>
+                    <input type="date" id="schedule-date" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-pra-brown-light-bg focus:border-pra-brown-light-bg">
+                </div>
+                <div>
+                    <label for="schedule-materi" class="block text-sm font-medium text-gray-700">Materi Latihan</h>
+                    <textarea id="schedule-materi" rows="4" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-pra-brown-light-bg focus:border-pra-brown-light-bg" placeholder="Contoh: Sandi Morse, Tali Temali, PBB"></textarea>
+                </div>
+                <div class="flex justify-end gap-4 pt-4">
+                    <button type="button" id="cancel-modal-btn" class="bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300 transition">Batal</button>
+                    <button type="submit" class="pra-brown-bg text-white font-bold py-2 px-6 rounded-lg hover:bg-pra-brown-light-bg transition">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal untuk Isi Absensi -->
+    <div id="attendance-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-8 transform transition-all scale-95 opacity-0" id="attendance-modal-content">
+            <h2 class="text-2xl font-bold pra-brown mb-2">Formulir Kehadiran</h2>
+            <p class="text-gray-600 mb-6">Latihan tanggal: <span id="attendance-date" class="font-semibold"></span></p>
+            <form id="attendance-form" class="space-y-4">
+                 <input type="hidden" id="attendance-schedule-id">
+                 <div>
+                    <label for="member-name" class="block text-sm font-medium text-gray-700">Nama Lengkap</label>
+                    <select id="member-name" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-pra-brown-light-bg focus:border-pra-brown-light-bg sm:text-sm rounded-md">
+                        <!-- Opsi nama akan diisi oleh JavaScript -->
+                    </select>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="member-class" class="block text-sm font-medium text-gray-700">Kelas</label>
+                        <select id="member-class" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-pra-brown-light-bg focus:border-pra-brown-light-bg sm:text-sm rounded-md">
+                           <option>X-1</option><option>X-2</option><option>X-3</option>
+                           <option>XI-IPA-1</option><option>XI-IPA-2</option><option>XI-IPS-1</option>
+                           <option>XII-IPA-1</option><option>XII-IPA-2</option><option>XII-IPS-1</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="member-angkatan" class="block text-sm font-medium text-gray-700">Angkatan</label>
+                        <select id="member-angkatan" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-pra-brown-light-bg focus:border-pra-brown-light-bg sm:text-sm rounded-md">
+                           <option>16</option>
+                           <option>17</option>
+                           <option>18</option>
+                        </select>
+                    </div>
+                </div>
+                 <div>
+                    <label class="block text-sm font-medium text-gray-700">Status Kehadiran</label>
+                    <div class="mt-2 flex space-x-4">
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="status" value="Hadir" class="form-radio text-pra-green-bg focus:ring-pra-green-bg" checked>
+                            <span class="ml-2">Hadir</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="status" value="Izin" class="form-radio text-yellow-500 focus:ring-yellow-500">
+                            <span class="ml-2">Izin</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="status" value="Sakit" class="form-radio text-red-500 focus:ring-red-500">
+                            <span class="ml-2">Sakit</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-4 pt-4">
+                    <button type="button" id="cancel-attendance-btn" class="bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300 transition">Batal</button>
+                    <button type="submit" class="pra-green-bg text-white font-bold py-2 px-6 rounded-lg hover:bg-opacity-90 transition">Kirim Absensi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-5 right-5 bg-green-500 text-white py-2 px-6 rounded-lg shadow-lg transform translate-x-[120%] transition-transform duration-300">
+        <p id="toast-message">Aksi berhasil!</p>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- DOM ELEMENTS ---
+    const loginPage = document.getElementById('login-page');
+    const adminDashboard = document.getElementById('admin-dashboard');
+    const userDashboard = document.getElementById('user-dashboard');
+    const loginBtn = document.getElementById('login-btn');
+    const usernameInput = document.getElementById('username');
+    const passwordInput = document.getElementById('password');
+    const loginError = document.getElementById('login-error');
+
+    const addScheduleBtn = document.getElementById('add-schedule-btn');
+    const scheduleModal = document.getElementById('schedule-modal');
+    const modalContent = document.getElementById('modal-content');
+    const cancelModalBtn = document.getElementById('cancel-modal-btn');
+    const scheduleForm = document.getElementById('schedule-form');
+    const modalTitle = document.getElementById('modal-title');
+    const scheduleIdInput = document.getElementById('schedule-id');
+    const scheduleDateInput = document.getElementById('schedule-date');
+    const scheduleMateriInput = document.getElementById('schedule-materi');
+    
+    const attendanceModal = document.getElementById('attendance-modal');
+    const attendanceModalContent = document.getElementById('attendance-modal-content');
+    const cancelAttendanceBtn = document.getElementById('cancel-attendance-btn');
+    const attendanceForm = document.getElementById('attendance-form');
+    const attendanceDate = document.getElementById('attendance-date');
+    const attendanceScheduleId = document.getElementById('attendance-schedule-id');
+
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toast-message');
+
+    // --- DATA ---
+    const dummyUsers = {
+        admin: { password: 'admin1234', role: 'admin' },
+        user: { password: 'user123', role: 'user' }
+    };
+    
+    let members = [
+        { id: 1, name: "Budi Santoso", class: "XI-IPA-1", angkatan: 17 },
+        { id: 2, name: "Citra Lestari", class: "XI-IPA-2", angkatan: 17 },
+        { id: 3, name: "Doni Firmansyah", class: "X-1", angkatan: 18 },
+        { id: 4, name: "Eka Putri", class: "XII-IPS-1", angkatan: 16 },
+        { id: 5, name: "Fajar Nugraha", class: "X-2", angkatan: 18 },
+    ];
+
+    // Coba ambil data dari localStorage, jika tidak ada, gunakan data dummy
+    let schedule = JSON.parse(localStorage.getItem('pramukaSchedule')) || [
+        { 
+            id: 1, 
+            date: '2025-09-24', 
+            materi: '1. Pengenalan Sandi Morse & Semaphore\n2. Latihan PBB Dasar\n3. Games Kekompakan',
+            kehadiran: [
+                { memberId: 1, name: "Budi Santoso", class: "XI-IPA-1", angkatan: 17, status: "Hadir" },
+                { memberId: 2, name: "Citra Lestari", class: "XI-IPA-2", angkatan: 17, status: "Hadir" }
+            ]
+        },
+        { 
+            id: 2, 
+            date: '2025-10-01', 
+            materi: '1. Tali Temali (Simpul Mati, Simpul Hidup, Simpul Jangkar)\n2. Praktek mendirikan tenda dome',
+            kehadiran: []
+        }
+    ];
+
+    let currentUser = null;
+    
+    // --- FUNCTIONS ---
+    function saveToLocalStorage() {
+        localStorage.setItem('pramukaSchedule', JSON.stringify(schedule));
+    }
+
+    function showToast(message, isError = false) {
+        toastMessage.textContent = message;
+        toast.classList.remove('bg-green-500', 'bg-red-500');
+        toast.classList.add(isError ? 'bg-red-500' : 'bg-green-500');
+        toast.classList.remove('translate-x-[120%]');
+        setTimeout(() => {
+            toast.classList.add('translate-x-[120%]');
+        }, 3000);
+    }
+    
+    function showPage(pageId) {
+        [loginPage, adminDashboard, userDashboard].forEach(page => {
+            page.classList.add('hidden');
+        });
+        document.getElementById(pageId).classList.remove('hidden');
+    }
+
+    function formatDate(dateString) {
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        return new Date(dateString + 'T00:00:00').toLocaleDateString('id-ID', options);
+    }
+
+    // --- RENDER FUNCTIONS ---
+    function renderAdminSchedule() {
+        const container = document.getElementById('schedule-list-admin');
+        container.innerHTML = '';
+        if (schedule.length === 0) {
+            container.innerHTML = `<p class="text-center text-gray-500 py-4">Belum ada jadwal. Silakan tambahkan.</p>`;
+            return;
+        }
+        
+        // Urutkan jadwal dari yang terbaru
+        const sortedSchedule = [...schedule].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        sortedSchedule.forEach(item => {
+            const attendanceSummary = item.kehadiran.reduce((acc, curr) => {
+                acc[curr.status] = (acc[curr.status] || 0) + 1;
+                return acc;
+            }, {});
+
+            const card = document.createElement('div');
+            card.className = 'bg-pra-sand-light-bg/50 p-4 rounded-xl shadow-md border border-pra-tan-bg/50';
+            card.innerHTML = `
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center">
+                    <div>
+                        <p class="font-bold text-lg pra-brown">${formatDate(item.date)}</p>
+                        <p class="text-gray-700 whitespace-pre-wrap mt-2"><b>Materi:</b>\n${item.materi}</p>
+                    </div>
+                    <div class="flex gap-2 mt-4 sm:mt-0 self-end sm:self-center">
+                        <button data-id="${item.id}" class="edit-btn bg-blue-500 text-white p-2 rounded-full hover:bg-blue-600 transition shadow">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>
+                        </button>
+                        <button data-id="${item.id}" class="delete-btn bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition shadow">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-4 pt-4 border-t border-pra-tan-bg">
+                    <p class="font-semibold pra-green mb-2">Rekap Kehadiran (${item.kehadiran.length} orang):</p>
+                    <div class="flex gap-4 text-sm">
+                        <span class="font-medium">Hadir: ${attendanceSummary.Hadir || 0}</span>
+                        <span class="font-medium">Izin: ${attendanceSummary.Izin || 0}</span>
+                        <span class="font-medium">Sakit: ${attendanceSummary.Sakit || 0}</span>
+                    </div>
+                    ${item.kehadiran.length > 0 ? `<details class="mt-2 text-sm"><summary class="cursor-pointer font-semibold">Lihat Detail</summary><ul class="list-disc pl-5 mt-1 text-gray-600">${item.kehadiran.map(a => `<li>${a.name} (${a.angkatan}) - ${a.status}</li>`).join('')}</ul></details>` : '<p class="text-sm text-gray-500 mt-2">Belum ada yang mengisi absensi.</p>'}
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function renderUserSchedule() {
+        const container = document.getElementById('schedule-list-user');
+        container.innerHTML = '';
+        if (schedule.length === 0) {
+            container.innerHTML = `<p class="text-center text-gray-500 py-4">Belum ada jadwal latihan yang dipublikasikan.</p>`;
+            return;
+        }
+
+        const sortedSchedule = [...schedule].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        sortedSchedule.forEach(item => {
+            const today = new Date().setHours(0,0,0,0);
+            const scheduleDate = new Date(item.date + 'T00:00:00').setHours(0,0,0,0);
+            const isToday = today === scheduleDate;
+            const isPast = today > scheduleDate;
+            
+            let buttonHtml = `<button data-id="${item.id}" class="fill-attendance-btn mt-4 w-full sm:w-auto pra-green-bg text-white font-bold py-2 px-5 rounded-lg hover:bg-opacity-90 transition shadow-lg">Isi Absensi</button>`;
+            
+            if (!isToday) {
+                 buttonHtml = `<button disabled class="mt-4 w-full sm:w-auto bg-gray-400 text-white font-bold py-2 px-5 rounded-lg cursor-not-allowed">${isPast ? 'Absensi Ditutup' : 'Belum Dibuka'}</button>`;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'bg-pra-sand-light-bg/50 p-4 rounded-xl shadow-md border border-pra-tan-bg/50 flex flex-col sm:flex-row justify-between sm:items-center';
+            card.innerHTML = `
+                <div>
+                    <p class="font-bold text-lg pra-brown">${formatDate(item.date)}</p>
+                    <p class="text-gray-700 whitespace-pre-wrap mt-2"><b>Materi Hari Ini:</b>\n${item.materi}</p>
+                </div>
+                ${buttonHtml}
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    // --- MODAL & FORM HANDLERS ---
+    function openScheduleModal(item = null) {
+        scheduleForm.reset();
+        if (item) {
+            modalTitle.textContent = 'Edit Jadwal';
+            scheduleIdInput.value = item.id;
+            scheduleDateInput.value = item.date;
+            scheduleMateriInput.value = item.materi;
+        } else {
+            modalTitle.textContent = 'Tambah Jadwal Baru';
+            scheduleIdInput.value = '';
+            // Set tanggal default ke hari rabu terdekat
+            const today = new Date();
+            const dayOfWeek = today.getDay(); // 0 = Minggu, 3 = Rabu
+            const daysUntilWednesday = (3 - dayOfWeek + 7) % 7;
+            const nextWednesday = new Date(today.setDate(today.getDate() + daysUntilWednesday));
+            scheduleDateInput.valueAsDate = nextWednesday;
+        }
+        scheduleModal.classList.remove('hidden');
+        setTimeout(() => {
+            modalContent.classList.remove('scale-95', 'opacity-0');
+        }, 10);
+    }
+    
+    function closeScheduleModal() {
+        modalContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            scheduleModal.classList.add('hidden');
+        }, 200);
+    }
+    
+    function handleScheduleFormSubmit(e) {
+        e.preventDefault();
+        const id = scheduleIdInput.value;
+        const newSchedule = {
+            id: id ? parseInt(id) : Date.now(),
+            date: scheduleDateInput.value,
+            materi: scheduleMateriInput.value,
+        };
+
+        if (id) {
+            // Edit
+            const index = schedule.findIndex(item => item.id === parseInt(id));
+            newSchedule.kehadiran = schedule[index].kehadiran || [];
+            schedule[index] = newSchedule;
+            showToast('Jadwal berhasil diperbarui!');
+        } else {
+            // Tambah
+            newSchedule.kehadiran = [];
+            schedule.push(newSchedule);
+            showToast('Jadwal baru berhasil ditambahkan!');
+        }
+        saveToLocalStorage();
+        renderAdminSchedule();
+        closeScheduleModal();
+    }
+    
+    function openAttendanceModal(scheduleId) {
+        const item = schedule.find(s => s.id === scheduleId);
+        if (!item) return;
+        
+        attendanceForm.reset();
+        attendanceScheduleId.value = scheduleId;
+        attendanceDate.textContent = formatDate(item.date);
+        
+        // Populate member names
+        const memberNameSelect = document.getElementById('member-name');
+        memberNameSelect.innerHTML = '<option value="" disabled selected>Pilih nama...</option>';
+        members.forEach(member => {
+            const option = document.createElement('option');
+            option.value = member.id;
+            option.textContent = `${member.name} (Angkatan ${member.angkatan})`;
+            memberNameSelect.appendChild(option);
+        });
+
+        attendanceModal.classList.remove('hidden');
+        setTimeout(() => {
+            attendanceModalContent.classList.remove('scale-95', 'opacity-0');
+        }, 10);
+    }
+    
+    function closeAttendanceModal() {
+        attendanceModalContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            attendanceModal.classList.add('hidden');
+        }, 200);
+    }
+    
+    function handleAttendanceFormSubmit(e) {
+        e.preventDefault();
+        const scheduleId = parseInt(attendanceScheduleId.value);
+        const memberId = parseInt(document.getElementById('member-name').value);
+        
+        if (isNaN(memberId)) {
+            showToast('Silakan pilih nama Anda.', true);
+            return;
+        }
+
+        const member = members.find(m => m.id === memberId);
+        const scheduleItem = schedule.find(s => s.id === scheduleId);
+
+        // Cek apakah user sudah absen
+        const alreadyAttended = scheduleItem.kehadiran.find(att => att.memberId === memberId);
+        if(alreadyAttended){
+            showToast(`${member.name} sudah mengisi absensi untuk tanggal ini.`, true);
+            closeAttendanceModal();
+            return;
+        }
+
+        const newAttendance = {
+            memberId: member.id,
+            name: member.name,
+            class: document.getElementById('member-class').value,
+            angkatan: document.getElementById('member-angkatan').value,
+            status: document.querySelector('input[name="status"]:checked').value
+        };
+        
+        scheduleItem.kehadiran.push(newAttendance);
+        saveToLocalStorage();
+        showToast(`Absensi untuk ${member.name} berhasil dikirim!`);
+        closeAttendanceModal();
+    }
+
+
+    // --- LOGIN & LOGOUT ---
+    function handleLogin() {
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
+        const user = dummyUsers[username];
+
+        if (user && user.password === password) {
+            currentUser = { username, role: user.role };
+            loginError.classList.add('hidden');
+            if (user.role === 'admin') {
+                showPage('admin-dashboard');
+                renderAdminSchedule();
+            } else {
+                document.getElementById('user-name-display').textContent = username;
+                showPage('user-dashboard');
+                renderUserSchedule();
+            }
+        } else {
+            loginError.classList.remove('hidden');
+        }
+    }
+
+    function handleLogout() {
+        currentUser = null;
+        usernameInput.value = '';
+        passwordInput.value = '';
+        showPage('login-page');
+    }
+
+    // --- EVENT LISTENERS ---
+    loginBtn.addEventListener('click', handleLogin);
+    passwordInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleLogin();
+    });
+
+    [document.getElementById('admin-logout-btn'), document.getElementById('user-logout-btn')].forEach(btn => {
+        btn.addEventListener('click', handleLogout);
+    });
+
+    addScheduleBtn.addEventListener('click', () => openScheduleModal());
+    cancelModalBtn.addEventListener('click', closeScheduleModal);
+    scheduleForm.addEventListener('submit', handleScheduleFormSubmit);
+
+    document.getElementById('schedule-list-admin').addEventListener('click', (e) => {
+        const editBtn = e.target.closest('.edit-btn');
+        const deleteBtn = e.target.closest('.delete-btn');
+
+        if (editBtn) {
+            const id = parseInt(editBtn.dataset.id);
+            const item = schedule.find(s => s.id === id);
+            openScheduleModal(item);
+        }
+
+        if (deleteBtn) {
+            const id = parseInt(deleteBtn.dataset.id);
+            if(confirm('Apakah Anda yakin ingin menghapus jadwal ini?')){
+                schedule = schedule.filter(s => s.id !== id);
+                saveToLocalStorage();
+                renderAdminSchedule();
+                showToast('Jadwal berhasil dihapus.');
+            }
+        }
+    });
+    
+    document.getElementById('schedule-list-user').addEventListener('click', (e) => {
+        const fillBtn = e.target.closest('.fill-attendance-btn');
+        if(fillBtn) {
+            const id = parseInt(fillBtn.dataset.id);
+            openAttendanceModal(id);
+        }
+    });
+    
+    cancelAttendanceBtn.addEventListener('click', closeAttendanceModal);
+    attendanceForm.addEventListener('submit', handleAttendanceFormSubmit);
+
+    // Initial state
+    showPage('login-page');
+});
+</script>
+
+</body>
+</html>
