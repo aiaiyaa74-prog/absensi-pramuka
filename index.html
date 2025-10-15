@@ -1,13 +1,14 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Absensi Online Pramuka Astinapura</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?famcily=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -26,27 +27,28 @@
         .pra-sand-light-bg { background-color: #f5deb3; }
         
         /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f5deb3;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #A0522D;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #6F4E37;
-        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f5deb3; }
+        ::-webkit-scrollbar-thumb { background: #A0522D; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6F4E37; }
 
         /* Animation for page transition */
-        .page {
-            animation: fadeIn 0.5s ease-in-out;
-        }
+        .page { animation: fadeIn 0.5s ease-in-out; }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #6F4E37;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -122,10 +124,12 @@
                         Tambah Jadwal
                     </button>
                 </div>
-
-                <div id="schedule-list-admin" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                    <!-- Jadwal akan dimuat di sini oleh JavaScript -->
+                
+                <div id="schedule-list-admin-container">
+                    <div id="admin-loader" class="flex justify-center py-8"><div class="loader"></div></div>
+                    <div id="schedule-list-admin" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2"></div>
                 </div>
+
             </div>
         </div>
 
@@ -144,12 +148,12 @@
                 </header>
 
                 <h2 class="text-xl font-semibold pra-green mb-4">Jadwal Latihan Tersedia</h2>
-                 <div id="schedule-list-user" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                    <!-- Jadwal akan dimuat di sini oleh JavaScript -->
+                <div id="schedule-list-user-container">
+                    <div id="user-loader" class="flex justify-center py-8"><div class="loader"></div></div>
+                    <div id="schedule-list-user" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2"></div>
                 </div>
             </div>
         </div>
-
     </div>
 
     <!-- Modal untuk Tambah/Edit Jadwal -->
@@ -237,6 +241,23 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+    // --- KONFIGURASI SUPABASE ---
+    // Ganti dengan URL dan Kunci Anon dari proyek Supabase Anda
+    const SUPABASE_URL = 'https://mgzwgkiyiodtxjnevktq.supabase.co'; 
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nendna2l5aW9kdHhqbmV2a3RxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyODI3ODAsImV4cCI6MjA3NTg1ODc4MH0.eqvadRXtl28V_e2_3hE5PvXV320xdRCVCYDfOwq8heM';
+
+    // Cek jika URL dan Key belum diisi
+    if (SUPABASE_URL === 'URL_PROYEK_SUPABASE_ANDA' || SUPABASE_ANON_KEY === 'KUNCI_ANON_SUPABASE_ANDA') {
+        document.getElementById('app-container').innerHTML = `
+            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg shadow-md" role="alert">
+                <p class="font-bold">Konfigurasi Diperlukan</p>
+                <p>Silakan buka file HTML ini, cari bagian &lt;script&gt;, dan isi variabel <strong>SUPABASE_URL</strong> dan <strong>SUPABASE_ANON_KEY</strong> dengan data dari proyek Supabase Anda. Ikuti panduan di file <strong>supabase_setup_guide.md</strong>.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // --- DOM ELEMENTS ---
     const loginPage = document.getElementById('login-page');
@@ -273,7 +294,8 @@ document.addEventListener('DOMContentLoaded', () => {
         user: { password: 'user123', role: 'user' }
     };
     
-    let members = [
+    // Data anggota tetap statis untuk saat ini
+    const members = [
         { id: 1, name: "Budi Santoso", class: "XI-IPA-1", angkatan: 17 },
         { id: 2, name: "Citra Lestari", class: "XI-IPA-2", angkatan: 17 },
         { id: 3, name: "Doni Firmansyah", class: "X-1", angkatan: 18 },
@@ -281,30 +303,31 @@ document.addEventListener('DOMContentLoaded', () => {
         { id: 5, name: "Fajar Nugraha", class: "X-2", angkatan: 18 },
     ];
 
-    // Coba ambil data dari localStorage, jika tidak ada, gunakan data dummy
-    let schedule = JSON.parse(localStorage.getItem('pramukaSchedule')) || [
-        { 
-            id: 1, 
-            date: '2025-09-24', 
-            materi: '1. Pengenalan Sandi Morse & Semaphore\n2. Latihan PBB Dasar\n3. Games Kekompakan',
-            kehadiran: [
-                { memberId: 1, name: "Budi Santoso", class: "XI-IPA-1", angkatan: 17, status: "Hadir" },
-                { memberId: 2, name: "Citra Lestari", class: "XI-IPA-2", angkatan: 17, status: "Hadir" }
-            ]
-        },
-        { 
-            id: 2, 
-            date: '2025-10-01', 
-            materi: '1. Tali Temali (Simpul Mati, Simpul Hidup, Simpul Jangkar)\n2. Praktek mendirikan tenda dome',
-            kehadiran: []
-        }
-    ];
-
+    let schedule = [];
     let currentUser = null;
     
     // --- FUNCTIONS ---
-    function saveToLocalStorage() {
-        localStorage.setItem('pramukaSchedule', JSON.stringify(schedule));
+
+    async function loadSchedules() {
+        if (currentUser?.role === 'admin') document.getElementById('admin-loader').classList.remove('hidden');
+        if (currentUser?.role === 'user') document.getElementById('user-loader').classList.remove('hidden');
+        
+        const { data, error } = await supabaseClient
+            .from('schedules')
+            .select('*, attendances(*)')
+            .order('date', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching schedules:', error);
+            showToast('Gagal memuat data jadwal.', true);
+        } else {
+            schedule = data.map(item => ({ ...item, kehadiran: item.attendances || [] }));
+            if (currentUser?.role === 'admin') renderAdminSchedule();
+            if (currentUser?.role === 'user') renderUserSchedule();
+        }
+
+        if (currentUser?.role === 'admin') document.getElementById('admin-loader').classList.add('hidden');
+        if (currentUser?.role === 'user') document.getElementById('user-loader').classList.add('hidden');
     }
 
     function showToast(message, isError = false) {
@@ -338,10 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        // Urutkan jadwal dari yang terbaru
-        const sortedSchedule = [...schedule].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-        sortedSchedule.forEach(item => {
+        schedule.forEach(item => {
             const attendanceSummary = item.kehadiran.reduce((acc, curr) => {
                 acc[curr.status] = (acc[curr.status] || 0) + 1;
                 return acc;
@@ -371,7 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="font-medium">Izin: ${attendanceSummary.Izin || 0}</span>
                         <span class="font-medium">Sakit: ${attendanceSummary.Sakit || 0}</span>
                     </div>
-                    ${item.kehadiran.length > 0 ? `<details class="mt-2 text-sm"><summary class="cursor-pointer font-semibold">Lihat Detail</summary><ul class="list-disc pl-5 mt-1 text-gray-600">${item.kehadiran.map(a => `<li>${a.name} (${a.angkatan}) - ${a.status}</li>`).join('')}</ul></details>` : '<p class="text-sm text-gray-500 mt-2">Belum ada yang mengisi absensi.</p>'}
+                    ${item.kehadiran.length > 0 ? `<details class="mt-2 text-sm"><summary class="cursor-pointer font-semibold">Lihat Detail</summary><ul class="list-disc pl-5 mt-1 text-gray-600">${item.kehadiran.map(a => `<li>${a.member_name} (${a.member_angkatan}) - ${a.status}</li>`).join('')}</ul></details>` : '<p class="text-sm text-gray-500 mt-2">Belum ada yang mengisi absensi.</p>'}
                 </div>
             `;
             container.appendChild(card);
@@ -386,9 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const sortedSchedule = [...schedule].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-        sortedSchedule.forEach(item => {
+        schedule.forEach(item => {
             const today = new Date().setHours(0,0,0,0);
             const scheduleDate = new Date(item.date + 'T00:00:00').setHours(0,0,0,0);
             const isToday = today === scheduleDate;
@@ -424,49 +442,43 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             modalTitle.textContent = 'Tambah Jadwal Baru';
             scheduleIdInput.value = '';
-            // Set tanggal default ke hari rabu terdekat
             const today = new Date();
-            const dayOfWeek = today.getDay(); // 0 = Minggu, 3 = Rabu
+            const dayOfWeek = today.getDay();
             const daysUntilWednesday = (3 - dayOfWeek + 7) % 7;
             const nextWednesday = new Date(today.setDate(today.getDate() + daysUntilWednesday));
             scheduleDateInput.valueAsDate = nextWednesday;
         }
         scheduleModal.classList.remove('hidden');
-        setTimeout(() => {
-            modalContent.classList.remove('scale-95', 'opacity-0');
-        }, 10);
+        setTimeout(() => modalContent.classList.remove('scale-95', 'opacity-0'), 10);
     }
     
     function closeScheduleModal() {
         modalContent.classList.add('scale-95', 'opacity-0');
-        setTimeout(() => {
-            scheduleModal.classList.add('hidden');
-        }, 200);
+        setTimeout(() => scheduleModal.classList.add('hidden'), 200);
     }
     
-    function handleScheduleFormSubmit(e) {
+    async function handleScheduleFormSubmit(e) {
         e.preventDefault();
         const id = scheduleIdInput.value;
-        const newSchedule = {
-            id: id ? parseInt(id) : Date.now(),
+        const scheduleData = {
             date: scheduleDateInput.value,
             materi: scheduleMateriInput.value,
         };
 
+        let result;
         if (id) {
-            // Edit
-            const index = schedule.findIndex(item => item.id === parseInt(id));
-            newSchedule.kehadiran = schedule[index].kehadiran || [];
-            schedule[index] = newSchedule;
-            showToast('Jadwal berhasil diperbarui!');
+            result = await supabaseClient.from('schedules').update(scheduleData).eq('id', id);
         } else {
-            // Tambah
-            newSchedule.kehadiran = [];
-            schedule.push(newSchedule);
-            showToast('Jadwal baru berhasil ditambahkan!');
+            result = await supabaseClient.from('schedules').insert([scheduleData]);
         }
-        saveToLocalStorage();
-        renderAdminSchedule();
+
+        if (result.error) {
+            showToast('Gagal menyimpan jadwal.', true);
+            console.error('Error saving schedule:', result.error);
+        } else {
+            showToast(id ? 'Jadwal berhasil diperbarui!' : 'Jadwal baru berhasil ditambahkan!');
+        }
+        
         closeScheduleModal();
     }
     
@@ -478,7 +490,6 @@ document.addEventListener('DOMContentLoaded', () => {
         attendanceScheduleId.value = scheduleId;
         attendanceDate.textContent = formatDate(item.date);
         
-        // Populate member names
         const memberNameSelect = document.getElementById('member-name');
         memberNameSelect.innerHTML = '<option value="" disabled selected>Pilih nama...</option>';
         members.forEach(member => {
@@ -489,19 +500,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         attendanceModal.classList.remove('hidden');
-        setTimeout(() => {
-            attendanceModalContent.classList.remove('scale-95', 'opacity-0');
-        }, 10);
+        setTimeout(() => attendanceModalContent.classList.remove('scale-95', 'opacity-0'), 10);
     }
     
     function closeAttendanceModal() {
         attendanceModalContent.classList.add('scale-95', 'opacity-0');
-        setTimeout(() => {
-            attendanceModal.classList.add('hidden');
-        }, 200);
+        setTimeout(() => attendanceModal.classList.add('hidden'), 200);
     }
     
-    function handleAttendanceFormSubmit(e) {
+    async function handleAttendanceFormSubmit(e) {
         e.preventDefault();
         const scheduleId = parseInt(attendanceScheduleId.value);
         const memberId = parseInt(document.getElementById('member-name').value);
@@ -514,30 +521,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const member = members.find(m => m.id === memberId);
         const scheduleItem = schedule.find(s => s.id === scheduleId);
 
-        // Cek apakah user sudah absen
-        const alreadyAttended = scheduleItem.kehadiran.find(att => att.memberId === memberId);
-        if(alreadyAttended){
+        const alreadyAttended = scheduleItem.kehadiran.find(att => att.member_id === memberId);
+        if (alreadyAttended) {
             showToast(`${member.name} sudah mengisi absensi untuk tanggal ini.`, true);
             closeAttendanceModal();
             return;
         }
 
         const newAttendance = {
-            memberId: member.id,
-            name: member.name,
-            class: document.getElementById('member-class').value,
-            angkatan: document.getElementById('member-angkatan').value,
+            schedule_id: scheduleId,
+            member_id: member.id,
+            member_name: member.name,
+            member_class: document.getElementById('member-class').value,
+            member_angkatan: document.getElementById('member-angkatan').value,
             status: document.querySelector('input[name="status"]:checked').value
         };
         
-        scheduleItem.kehadiran.push(newAttendance);
-        saveToLocalStorage();
-        showToast(`Absensi untuk ${member.name} berhasil dikirim!`);
+        const { error } = await supabaseClient.from('attendances').insert([newAttendance]);
+
+        if (error) {
+            showToast('Gagal mengirim absensi.', true);
+            console.error('Error sending attendance:', error);
+        } else {
+            showToast(`Absensi untuk ${member.name} berhasil dikirim!`);
+        }
+        
         closeAttendanceModal();
     }
 
-
-    // --- LOGIN & LOGOUT ---
+    // --- LOGIN & LOGOUT & REALTIME ---
     function handleLogin() {
         const username = usernameInput.value.trim();
         const password = passwordInput.value;
@@ -548,22 +560,36 @@ document.addEventListener('DOMContentLoaded', () => {
             loginError.classList.add('hidden');
             if (user.role === 'admin') {
                 showPage('admin-dashboard');
-                renderAdminSchedule();
             } else {
                 document.getElementById('user-name-display').textContent = username;
                 showPage('user-dashboard');
-                renderUserSchedule();
             }
+            loadSchedules();
+            listenForChanges(); // Start listening for realtime updates after login
         } else {
             loginError.classList.remove('hidden');
         }
     }
 
+    let channel = null;
     function handleLogout() {
+        if(channel) {
+            supabaseClient.removeChannel(channel);
+            channel = null;
+        }
         currentUser = null;
         usernameInput.value = '';
         passwordInput.value = '';
         showPage('login-page');
+    }
+
+    function listenForChanges() {
+        channel = supabaseClient.channel('public-db-changes')
+          .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
+            console.log('Database change received!', payload);
+            loadSchedules();
+          })
+          .subscribe();
     }
 
     // --- EVENT LISTENERS ---
@@ -580,7 +606,7 @@ document.addEventListener('DOMContentLoaded', () => {
     cancelModalBtn.addEventListener('click', closeScheduleModal);
     scheduleForm.addEventListener('submit', handleScheduleFormSubmit);
 
-    document.getElementById('schedule-list-admin').addEventListener('click', (e) => {
+    document.getElementById('schedule-list-admin').addEventListener('click', async (e) => {
         const editBtn = e.target.closest('.edit-btn');
         const deleteBtn = e.target.closest('.delete-btn');
 
@@ -592,11 +618,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (deleteBtn) {
             const id = parseInt(deleteBtn.dataset.id);
-            if(confirm('Apakah Anda yakin ingin menghapus jadwal ini?')){
-                schedule = schedule.filter(s => s.id !== id);
-                saveToLocalStorage();
-                renderAdminSchedule();
-                showToast('Jadwal berhasil dihapus.');
+            if(confirm('Apakah Anda yakin ingin menghapus jadwal ini? Semua data kehadiran terkait akan ikut terhapus.')){
+                // Hapus data absensi yang terkait dulu
+                const { error: attendanceError } = await supabaseClient.from('attendances').delete().eq('schedule_id', id);
+                if (attendanceError) {
+                    showToast('Gagal menghapus data kehadiran terkait.', true);
+                    return;
+                }
+                
+                // Baru hapus jadwalnya
+                const { error: scheduleError } = await supabaseClient.from('schedules').delete().eq('id', id);
+                if (scheduleError) {
+                    showToast('Gagal menghapus jadwal.', true);
+                } else {
+                    showToast('Jadwal berhasil dihapus.');
+                }
             }
         }
     });
@@ -619,3 +655,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
