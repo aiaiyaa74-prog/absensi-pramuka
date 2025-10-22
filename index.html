@@ -187,17 +187,27 @@
                  <input type="hidden" id="attendance-schedule-id">
                  <div>
                     <label for="member-name" class="block text-sm font-medium text-gray-700">Nama Lengkap</label>
-                    <select id="member-name" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-pra-brown-light-bg focus:border-pra-brown-light-bg sm:text-sm rounded-md">
-                        <!-- Opsi nama akan diisi oleh JavaScript -->
-                    </select>
+                    <input type="text" id="member-name" required placeholder="Tulis nama lengkap Anda" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-pra-brown-light-bg focus:border-pra-brown-light-bg">
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label for="member-class" class="block text-sm font-medium text-gray-700">Kelas</label>
                         <select id="member-class" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-pra-brown-light-bg focus:border-pra-brown-light-bg sm:text-sm rounded-md">
-                           <option>X-1</option><option>X-2</option><option>X-3</option>
-                           <option>XI-IPA-1</option><option>XI-IPA-2</option><option>XI-IPS-1</option>
-                           <option>XII-IPA-1</option><option>XII-IPA-2</option><option>XII-IPS-1</option>
+                           <optgroup label="Kelas X">
+                               <option>X-A</option><option>X-B</option><option>X-C</option><option>X-D</option>
+                               <option>X-E</option><option>X-F</option><option>X-G</option><option>X-H</option>
+                               <option>X-I</option><option>X-J</option><option>X-K</option><option>X-L</option>
+                           </optgroup>
+                           <optgroup label="Kelas XI">
+                               <option>XI-A</option><option>XI-B</option><option>XI-C</option><option>XI-D</option>
+                               <option>XI-E</option><option>XI-F</option><option>XI-G</option><option>XI-H</option>
+                               <option>XI-I</option><option>XI-J</option><option>XI-K</option><option>XI-L</option>
+                           </optgroup>
+                           <optgroup label="Kelas XII">
+                               <option>XII-A</option><option>XII-B</option><option>XII-C</option><option>XII-D</option>
+                               <option>XII-E</option><option>XII-F</option><option>XII-G</option><option>XII-H</option>
+                               <option>XII-I</option><option>XII-J</option><option>XII-K</option><option>XII-L</option>
+                           </optgroup>
                         </select>
                     </div>
                     <div>
@@ -294,15 +304,8 @@ document.addEventListener('DOMContentLoaded', () => {
         user: { password: 'user123', role: 'user' }
     };
     
-    // Data anggota tetap statis untuk saat ini
-    const members = [
-        { id: 1, name: "Budi Santoso", class: "XI-IPA-1", angkatan: 17 },
-        { id: 2, name: "Citra Lestari", class: "XI-IPA-2", angkatan: 17 },
-        { id: 3, name: "Doni Firmansyah", class: "X-1", angkatan: 18 },
-        { id: 4, name: "Eka Putri", class: "XII-IPS-1", angkatan: 16 },
-        { id: 5, name: "Fajar Nugraha", class: "X-2", angkatan: 18 },
-    ];
-
+    // Daftar nama anggota statis dihapus, diganti input manual oleh user
+    
     let schedule = [];
     let currentUser = null;
     
@@ -490,14 +493,8 @@ document.addEventListener('DOMContentLoaded', () => {
         attendanceScheduleId.value = scheduleId;
         attendanceDate.textContent = formatDate(item.date);
         
-        const memberNameSelect = document.getElementById('member-name');
-        memberNameSelect.innerHTML = '<option value="" disabled selected>Pilih nama...</option>';
-        members.forEach(member => {
-            const option = document.createElement('option');
-            option.value = member.id;
-            option.textContent = `${member.name} (Angkatan ${member.angkatan})`;
-            memberNameSelect.appendChild(option);
-        });
+        // Pastikan input nama kosong saat modal dibuka
+        document.getElementById('member-name').value = '';
 
         attendanceModal.classList.remove('hidden');
         setTimeout(() => attendanceModalContent.classList.remove('scale-95', 'opacity-0'), 10);
@@ -511,27 +508,26 @@ document.addEventListener('DOMContentLoaded', () => {
     async function handleAttendanceFormSubmit(e) {
         e.preventDefault();
         const scheduleId = parseInt(attendanceScheduleId.value);
-        const memberId = parseInt(document.getElementById('member-name').value);
+        const memberName = document.getElementById('member-name').value.trim();
         
-        if (isNaN(memberId)) {
-            showToast('Silakan pilih nama Anda.', true);
+        if (memberName === '') {
+            showToast('Nama lengkap wajib diisi.', true);
             return;
         }
 
-        const member = members.find(m => m.id === memberId);
         const scheduleItem = schedule.find(s => s.id === scheduleId);
 
-        const alreadyAttended = scheduleItem.kehadiran.find(att => att.member_id === memberId);
+        // Cek duplikasi berdasarkan nama (tidak case-sensitive)
+        const alreadyAttended = scheduleItem.kehadiran.find(att => att.member_name.toLowerCase() === memberName.toLowerCase());
         if (alreadyAttended) {
-            showToast(`${member.name} sudah mengisi absensi untuk tanggal ini.`, true);
+            showToast(`${memberName} sudah mengisi absensi untuk tanggal ini.`, true);
             closeAttendanceModal();
             return;
         }
 
         const newAttendance = {
             schedule_id: scheduleId,
-            member_id: member.id,
-            member_name: member.name,
+            member_name: memberName,
             member_class: document.getElementById('member-class').value,
             member_angkatan: document.getElementById('member-angkatan').value,
             status: document.querySelector('input[name="status"]:checked').value
@@ -543,7 +539,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast('Gagal mengirim absensi.', true);
             console.error('Error sending attendance:', error);
         } else {
-            showToast(`Absensi untuk ${member.name} berhasil dikirim!`);
+            showToast(`Absensi untuk ${memberName} berhasil dikirim!`);
         }
         
         closeAttendanceModal();
@@ -655,4 +651,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
