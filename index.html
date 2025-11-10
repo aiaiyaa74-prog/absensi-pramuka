@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?famcily=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -167,7 +167,7 @@
                     <input type="date" id="schedule-date" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-pra-brown-light-bg focus:border-pra-brown-light-bg">
                 </div>
                 <div>
-                    <label for="schedule-materi" class="block text-sm font-medium text-gray-700">Materi Latihan</h>
+                    <label for="schedule-materi" class="block text-sm font-medium text-gray-700">Materi Latihan</label>
                     <textarea id="schedule-materi" rows="4" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-pra-brown-light-bg focus:border-pra-brown-light-bg" placeholder="Contoh: Sandi Morse, Tali Temali, PBB"></textarea>
                 </div>
                 <div class="flex justify-end gap-4 pt-4">
@@ -249,6 +249,18 @@
         <p id="toast-message">Aksi berhasil!</p>
     </div>
 
+    <!-- Modal untuk Konfirmasi Hapus -->
+    <div id="delete-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-8 transform transition-all scale-95 opacity-0" id="delete-modal-content">
+            <h2 class="text-2xl font-bold text-red-600 mb-4">Konfirmasi Hapus</h2>
+            <p class="text-gray-600 mb-6">Apakah Anda yakin ingin menghapus jadwal ini? Semua data absensi yang terkait akan ikut terhapus secara permanen.</p>
+            <div class="flex justify-end gap-4 pt-4">
+                <button type="button" id="cancel-delete-btn" class="bg-gray-200 text-gray-800 font-semibold py-2 px-6 rounded-lg hover:bg-gray-300 transition">Batal</button>
+                <button type="button" id="confirm-delete-btn" class="bg-red-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-red-700 transition">Ya, Hapus</button>
+            </div>
+        </div>
+    </div>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     // --- KONFIGURASI SUPABASE ---
@@ -295,6 +307,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const attendanceDate = document.getElementById('attendance-date');
     const attendanceScheduleId = document.getElementById('attendance-schedule-id');
 
+    const deleteModal = document.getElementById('delete-modal');
+    const deleteModalContent = document.getElementById('delete-modal-content');
+    const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+    const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+
     const toast = document.getElementById('toast');
     const toastMessage = document.getElementById('toast-message');
 
@@ -308,6 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let schedule = [];
     let currentUser = null;
+    let scheduleToDeleteId = null;
     
     // --- FUNCTIONS ---
 
@@ -545,6 +563,47 @@ document.addEventListener('DOMContentLoaded', () => {
         closeAttendanceModal();
     }
 
+    function openConfirmModal(id) {
+        scheduleToDeleteId = id; // Store the id
+        deleteModal.classList.remove('hidden');
+        setTimeout(() => deleteModalContent.classList.remove('scale-95', 'opacity-0'), 10);
+    }
+
+    function closeConfirmModal() {
+        deleteModalContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            deleteModal.classList.add('hidden');
+            scheduleToDeleteId = null; // Clear the id
+        }, 200);
+    }
+
+    async function handleDeleteSchedule() {
+        if (!scheduleToDeleteId) return;
+
+        const id = scheduleToDeleteId;
+
+        // Hapus data absensi yang terkait dulu
+        const { error: attendanceError } = await supabaseClient.from('attendances').delete().eq('schedule_id', id);
+        if (attendanceError) {
+            showToast('Gagal menghapus data kehadiran terkait.', true);
+            console.error('Error deleting attendance:', attendanceError);
+            closeConfirmModal();
+            return;
+        }
+        
+        // Baru hapus jadwalnya
+        const { error: scheduleError } = await supabaseClient.from('schedules').delete().eq('id', id);
+        if (scheduleError) {
+            showToast('Gagal menghapus jadwal.', true);
+            console.error('Error deleting schedule:', scheduleError);
+        } else {
+            showToast('Jadwal berhasil dihapus.');
+        }
+        
+        closeConfirmModal();
+        // loadSchedules() akan dipanggil oleh realtime listener
+    }
+
     // --- LOGIN & LOGOUT & REALTIME ---
     function handleLogin() {
         const username = usernameInput.value.trim();
@@ -612,24 +671,13 @@ document.addEventListener('DOMContentLoaded', () => {
             openScheduleModal(item);
         }
 
+        // --- PERBAIKAN DI SINI ---
+        // Blok `if (deleteBtn)` yang lama salah dan menyebabkan error.
+        // Ini adalah versi yang benar, yang hanya memanggil modal konfirmasi.
         if (deleteBtn) {
             const id = parseInt(deleteBtn.dataset.id);
-            if(confirm('Apakah Anda yakin ingin menghapus jadwal ini? Semua data kehadiran terkait akan ikut terhapus.')){
-                // Hapus data absensi yang terkait dulu
-                const { error: attendanceError } = await supabaseClient.from('attendances').delete().eq('schedule_id', id);
-                if (attendanceError) {
-                    showToast('Gagal menghapus data kehadiran terkait.', true);
-                    return;
-                }
-                
-                // Baru hapus jadwalnya
-                const { error: scheduleError } = await supabaseClient.from('schedules').delete().eq('id', id);
-                if (scheduleError) {
-                    showToast('Gagal menghapus jadwal.', true);
-                } else {
-                    showToast('Jadwal berhasil dihapus.');
-                }
-            }
+            // Membuka modal konfirmasi kustom
+            openConfirmModal(id);
         }
     });
     
@@ -643,6 +691,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     cancelAttendanceBtn.addEventListener('click', closeAttendanceModal);
     attendanceForm.addEventListener('submit', handleAttendanceFormSubmit);
+
+    // Listener untuk modal hapus
+    cancelDeleteBtn.addEventListener('click', closeConfirmModal);
+    confirmDeleteBtn.addEventListener('click', handleDeleteSchedule);
 
     // Initial state
     showPage('login-page');
